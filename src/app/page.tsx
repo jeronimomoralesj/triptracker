@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from 'react';
-import { Calendar, MapPin, Clock, Users, ArrowRight, Star, Palmtree, GraduationCap, Sparkles, Ship, Car, Plane, Wand, Book, Home } from 'lucide-react';
+import { Calendar, MapPin, Clock, Star, Palmtree, GraduationCap, Sparkles, Car, Wand, Home } from 'lucide-react';
 
 export default function CuentaRegresivaViaje() {
   // Estados generales
@@ -56,7 +56,7 @@ export default function CuentaRegresivaViaje() {
     }, 1000);
 
     return () => clearInterval(temporizador);
-  }, [ubicacionActiva]);
+  }, [ubicacionActiva, fechasViaje]);
 
   // Mostrar hechizo aleatoriamente cada 10 segundos
   useEffect(() => {
@@ -170,10 +170,6 @@ export default function CuentaRegresivaViaje() {
       personaje: 'Spiderman',
       descripcion: 'El crack',
       casa: 'Spiderman',
-      color: 'bg-red-700',
-      varita: 'Acebo, 11 pulgadas, núcleo de pluma de fénix',
-      patronus: 'Ciervo',
-      hechizo: 'Expelliarmus',
       imagen:"https://wallpapers.com/images/hd/spiderman-background-oycfyb1ksermw921.jpg"
     },
     {
@@ -181,10 +177,6 @@ export default function CuentaRegresivaViaje() {
       personaje: 'Baby Groot',
       descripcion: 'Fiofilda',
       casa: 'Guardianes de la Galaxia',
-      color: 'bg-red-700',
-      varita: 'Vid, 10¾ pulgadas, núcleo de fibra de corazón de dragón',
-      patronus: 'Nutria',
-      hechizo: 'Wingardium Leviosa',
       imagen:"https://media.vanityfair.com/photos/590f7d985caad73f2ce0cc98/master/pass/bb-groot.jpg"
     },
     {
@@ -192,10 +184,6 @@ export default function CuentaRegresivaViaje() {
       personaje: 'Luke Skywalker',
       descripcion: 'Juancho',
       casa: 'Rebels',
-      color: 'bg-red-700',
-      varita: 'Sauce, 14 pulgadas, núcleo de pelo de unicornio',
-      patronus: 'Jack Russell Terrier',
-      hechizo: 'Accio',
       imagen: "https://static1.colliderimages.com/wordpress/wp-content/uploads/2025/04/img_0807.jpeg"
     }
   ];
@@ -599,7 +587,7 @@ export default function CuentaRegresivaViaje() {
                 <div className="absolute inset-0 flex items-center justify-center">
                   <div className="animate-map-reveal">
                     <img 
-                      src={`/api/placeholder/800/400`} 
+                      src={`https://i.pinimg.com/474x/34/93/16/349316d1aea192f2d1db5ce15d0ddc1e.jpg`} 
                       alt="Mapa de viaje" 
                       className="w-full h-full object-cover opacity-50" 
                     />
