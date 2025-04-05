@@ -7,7 +7,7 @@ export default function CuentaRegresivaViaje() {
   // Estados generales
   const [tipoCuentaRegresiva, setTipoCuentaRegresiva] = useState('dias');
   const [cuentaRegresiva, setCuentaRegresiva] = useState({ dias: 0, horas: 0, minutos: 0, segundos: 0, semanas: 0 });
-  const [ubicacionActiva, setUbicacionActiva] = useState('boston');
+  const [ubicacionActiva, setUbicacionActiva] = useState<'boston' | 'graduacion' | 'hollywoodStudios' | 'islandsOfAdventure' | 'universalStudios' | 'miami' | 'puntaCana'>('boston');
   const [hoverDestino, setHoverDestino] = useState(null);
   const [mostrarHechizo, setMostrarHechizo] = useState(false);
 
