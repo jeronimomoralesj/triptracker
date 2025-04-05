@@ -388,7 +388,7 @@ export default function CuentaRegresivaViaje() {
             
             {/* Destinos */}
             <div className="space-y-12">
-              {destinos.map((dest, index) => (
+              {destinos.map((dest) => (
                 <div 
                   key={dest.id} 
                   className="relative"
@@ -536,7 +536,7 @@ export default function CuentaRegresivaViaje() {
           
           <div className="bg-[#0D1117]/90 border border-amber-900/30 rounded-xl p-6 shadow-lg">
             <div className="flex flex-wrap gap-4 justify-center">
-              {destinos.map((dest, index) => {
+              {destinos.map((dest) => {
                 const fechaEvento = new Date(dest.fecha.split(', ')[1]);
                 const mesActual = new Date().getMonth();
                 const mesEvento = fechaEvento.getMonth();
