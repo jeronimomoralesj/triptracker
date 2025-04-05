@@ -188,7 +188,7 @@ export default function CuentaRegresivaViaje() {
     }
   ];
 
-  const destino = destinos.find(d => d.id === ubicacionActiva);
+  const destino = destinos.find(d => d.id === ubicacionActiva)!;
 
   // Función para obtener la visualización de la cuenta regresiva
   const obtenerVisualizacionCuentaRegresiva = () => {
