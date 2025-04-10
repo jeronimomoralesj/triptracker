@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { Calendar, MapPin, Clock, Star, Palmtree, GraduationCap, Sparkles, Car, Wand, Home } from 'lucide-react';
+import Chat from './chat';
 
 export default function CuentaRegresivaViaje() {
   // Estados generales
@@ -166,14 +167,14 @@ export default function CuentaRegresivaViaje() {
   // Arreglo de viajeros (sección "viajeros")
   const viajeros = [
     {
-      nombre: 'Jerónimo',
+      nombre: 'Jeronimo',
       personaje: 'Spiderman',
       descripcion: 'El crack',
       casa: 'Spiderman',
       imagen:"https://wallpapers.com/images/hd/spiderman-background-oycfyb1ksermw921.jpg"
     },
     {
-      nombre: 'Sofía',
+      nombre: 'Sofia',
       personaje: 'Baby Groot',
       descripcion: 'Fiofilda',
       casa: 'Guardianes de la Galaxia',
@@ -303,6 +304,8 @@ export default function CuentaRegresivaViaje() {
           </div>
         </div>
       )}
+
+<Chat />
 
       {/* Cabecera con elementos mágicos */}
       <header className="relative py-12 px-4 overflow-hidden border-b-2 border-amber-900/50">
