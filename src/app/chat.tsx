@@ -210,7 +210,7 @@ export default function Chat(): JSX.Element {
             <header className="relative flex items-center justify-between px-4 py-3 sm:px-6 sm:py-4 bg-gradient-to-r from-amber-800 to-red-900 shadow-lg z-99">
               <div className="flex items-center gap-3">
                 <h2 className="text-xl sm:text-2xl font-bold text-amber-300 font-serif">
-                  Mensagero del viaje
+                  Mensajero del viaje
                 </h2>
               </div>
               <motion.button
