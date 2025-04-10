@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useEffect, FormEvent, useRef } from "react";
-import { MessageSquare, X, Send, User, ChevronDown } from "lucide-react";
+import { useState, useEffect, FormEvent, useRef, ChangeEvent } from "react";
+import { MessageSquare, X, Send, User, ChevronDown, Paperclip, File, Image, X as XIcon } from "lucide-react";
 import {
   collection,
   addDoc,
@@ -11,7 +11,8 @@ import {
   serverTimestamp,
   Timestamp,
 } from "firebase/firestore";
-import { db } from "../../firebase";
+import { ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
+import { db, storage } from "../../firebase";
 import { motion, AnimatePresence } from "framer-motion";
 
 // Type definitions for messages and users
@@ -20,6 +21,11 @@ interface ChatMessage {
   nombre: string;
   message: string;
   createdAt?: Timestamp;
+  attachments?: {
+    url: string;
+    type: string;
+    name: string;
+  }[];
 }
 
 interface Viajero {
@@ -86,16 +92,27 @@ const getHouseColors = (nombre: string) => {
   return viajero?.houseColor || "from-amber-600 to-red-800";
 };
 
+// File type for attachments
+interface FileAttachment {
+  file: File;
+  id: string;
+  preview?: string;
+}
+
 export default function Chat(): JSX.Element {
   const [showChat, setShowChat] = useState<boolean>(false);
   const [selectedUser, setSelectedUser] = useState<string>("");
   const [message, setMessage] = useState<string>("");
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
   const [isSelectOpen, setIsSelectOpen] = useState<boolean>(false);
+  const [attachments, setAttachments] = useState<FileAttachment[]>([]);
+  const [isUploading, setIsUploading] = useState<boolean>(false);
+  const [showAttachmentMenu, setShowAttachmentMenu] = useState<boolean>(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const chatContainerRef = useRef<HTMLDivElement>(null);
   const userSelectButtonRef = useRef<HTMLButtonElement>(null);
   const userSelectDropdownRef = useRef<HTMLDivElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Auto-scroll to bottom when new messages arrive
   const scrollToBottom = () => {
@@ -122,17 +139,121 @@ export default function Chat(): JSX.Element {
     return unsubscribe;
   }, []);
 
+  // Handle file selection
+  const handleFileSelect = (e: ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files.length > 0) {
+      const newFiles = Array.from(e.target.files).map((file) => {
+        const newAttachment: FileAttachment = {
+          file,
+          id: Math.random().toString(36).substring(2, 9),
+        };
+
+        // Create previews for images
+        if (file.type.startsWith("image/")) {
+          newAttachment.preview = URL.createObjectURL(file);
+        }
+
+        return newAttachment;
+      });
+
+      setAttachments((prev) => [...prev, ...newFiles]);
+    }
+    // Reset file input
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+  };
+
+  // Remove attachment from the list
+  const removeAttachment = (id: string) => {
+    setAttachments((prev) => {
+      const filtered = prev.filter((a) => a.id !== id);
+      
+      // Revoke object URLs to prevent memory leaks
+      const removed = prev.find((a) => a.id === id);
+      if (removed && removed.preview) {
+        URL.revokeObjectURL(removed.preview);
+      }
+
+      return filtered;
+    });
+  };
+
+  // Upload files to Firebase Storage
+  const uploadFiles = async (): Promise<Array<{ url: string; type: string; name: string }>> => {
+    if (attachments.length === 0) return [];
+    
+    console.log("Starting upload process with attachments:", attachments);
+    setIsUploading(true);
+    
+    const uploadPromises = attachments.map(async (attachment) => {
+      const file = attachment.file;
+      const fileName = `${Date.now()}_${file.name}`;
+      console.log("Preparing to upload file:", fileName);
+      const storageRef = ref(storage, `chat-attachments/${selectedUser}/${fileName}`);
+      
+      // Upload file
+      console.log("Uploading file to storage...");
+      const uploadTask = uploadBytesResumable(storageRef, file);
+      
+      // Monitor upload progress if needed
+      uploadTask.on('state_changed', 
+        (snapshot) => {
+          // Optional: track progress
+          const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+          console.log('Upload is ' + progress + '% done');
+        }
+      );
+      
+      await uploadTask;
+      console.log("File uploaded successfully");
+      
+      // Get download URL
+      const downloadURL = await getDownloadURL(storageRef);
+      console.log("Got download URL:", downloadURL);
+      
+      return {
+        url: downloadURL,
+        type: file.type,
+        name: file.name
+      };
+    });
+    
+    try {
+      const uploadedFiles = await Promise.all(uploadPromises);
+      console.log("All files uploaded:", uploadedFiles);
+      setIsUploading(false);
+      
+      // Clear attachments list after successful upload
+      setAttachments([]);
+      
+      return uploadedFiles;
+    } catch (error) {
+      console.error("Error uploading files:", error);
+      setIsUploading(false);
+      return [];
+    }
+  };
+
   // Handle sending a message
   const handleSendMessage = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (!selectedUser || !message.trim()) return;
+    if (!selectedUser || (!message.trim() && attachments.length === 0)) return;
+    
     try {
+      // Upload attachments if any
+      const uploadedFiles = await uploadFiles();
+      
+      // Create message document
       await addDoc(collection(db, "messages"), {
         nombre: selectedUser,
         message: message.trim(),
         createdAt: serverTimestamp(),
+        attachments: uploadedFiles.length > 0 ? uploadedFiles : null
       });
+      
       setMessage("");
+      setShowAttachmentMenu(false);
     } catch (err) {
       console.error("Error sending message: ", err);
     }
@@ -171,6 +292,11 @@ export default function Chat(): JSX.Element {
     setIsSelectOpen(false);
   };
 
+  // Toggle attachment menu
+  const toggleAttachmentMenu = () => {
+    setShowAttachmentMenu(!showAttachmentMenu);
+  };
+
   // Format Firestore timestamp for display
   const formatTime = (timestamp: Timestamp | null | undefined): string => {
     if (!timestamp) return "";
@@ -180,6 +306,48 @@ export default function Chat(): JSX.Element {
       minute: "2-digit",
       hour12: true,
     }).format(date);
+  };
+
+  // Helper to render attachment in chat message
+  const renderAttachment = (attachment: { url: string; type: string; name: string }, isCurrentUser: boolean) => {
+    const isImage = attachment.type.startsWith('image/');
+    
+    return (
+      <div 
+        key={attachment.url} 
+        className={`mt-2 rounded-lg overflow-hidden border ${isCurrentUser ? 'border-white/30' : 'border-amber-700/30'}`}
+      >
+        {isImage ? (
+          <div className="relative group">
+            <img 
+              src={attachment.url} 
+              alt={attachment.name} 
+              className="max-w-full max-h-60 rounded object-contain bg-slate-900/50"
+            />
+            <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/50">
+              <a 
+                href={attachment.url} 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="px-3 py-1.5 bg-amber-600 text-white rounded-lg text-xs font-medium hover:bg-amber-500 transition-colors"
+              >
+                Ver imagen
+              </a>
+            </div>
+          </div>
+        ) : (
+          <a 
+            href={attachment.url} 
+            target="_blank" 
+            rel="noopener noreferrer" 
+            className={`flex items-center p-2 gap-2 ${isCurrentUser ? 'bg-white/10 hover:bg-white/20' : 'bg-slate-700 hover:bg-slate-600'} transition-colors`}
+          >
+            <File size={18} className="flex-shrink-0" />
+            <span className="text-sm truncate max-w-[150px]">{attachment.name}</span>
+          </a>
+        )}
+      </div>
+    );
   };
 
   // Get current user image for the bubble button
@@ -194,6 +362,15 @@ export default function Chat(): JSX.Element {
 
   return (
     <>
+      {/* Hidden file input */}
+      <input
+        type="file"
+        ref={fileInputRef}
+        onChange={handleFileSelect}
+        multiple
+        className="hidden"
+      />
+      
       <AnimatePresence>
         {showChat ? (
           <motion.div
@@ -243,6 +420,7 @@ export default function Chat(): JSX.Element {
                   const sender = viajeros.find((v) => v.nombre === msg.nombre);
                   const isCurrentUser = msg.nombre === selectedUser;
                   const messageTime = formatTime(msg.createdAt);
+                  const hasAttachments = msg.attachments && msg.attachments.length > 0;
 
                   return (
                     <motion.div
@@ -283,9 +461,23 @@ export default function Chat(): JSX.Element {
                               <p className="text-xs opacity-70">{messageTime}</p>
                             )}
                           </div>
-                          <p className="text-sm whitespace-pre-wrap break-words">
-                            {msg.message}
-                          </p>
+                          
+                          {/* Message text */}
+                          {msg.message && (
+                            <p className="text-sm whitespace-pre-wrap break-words">
+                              {msg.message}
+                            </p>
+                          )}
+                          
+                          {/* Message attachments */}
+                          {hasAttachments && (
+                            <div className="mt-2 space-y-2">
+                              {msg.attachments.map((attachment) => 
+                                renderAttachment(attachment, isCurrentUser)
+                              )}
+                            </div>
+                          )}
+                          
                           <div
                             className={`absolute ${
                               isCurrentUser ? "-right-2 top-0" : "-left-2 top-0"
@@ -451,25 +643,136 @@ export default function Chat(): JSX.Element {
                 </AnimatePresence>
               </div>
 
+              {/* Attachment preview area */}
+              {attachments.length > 0 && (
+                <div className="mb-3 p-3 bg-slate-700 rounded-lg border border-amber-600/30">
+                  <div className="flex justify-between items-center mb-2">
+                    <h4 className="text-amber-300 text-sm font-medium">Archivos adjuntos</h4>
+                    <button
+                      type="button"
+                      onClick={() => setAttachments([])}
+                      className="text-amber-400 hover:text-amber-300 p-1"
+                    >
+                      <X size={16} />
+                    </button>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {attachments.map((attachment) => (
+                      <div
+                        key={attachment.id}
+                        className="relative group bg-slate-800 rounded-md overflow-hidden border border-amber-600/30"
+                      >
+                        {attachment.preview ? (
+                          <div className="w-16 h-16 relative">
+                            <img
+                              src={attachment.preview}
+                              alt="Preview"
+                              className="w-full h-full object-cover"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => removeAttachment(attachment.id)}
+                              className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 rounded-full flex items-center justify-center text-white hover:bg-red-600 transition-colors"
+                            >
+                              <XIcon size={12} />
+                            </button>
+                          </div>
+                        ) : (
+                          <div className="w-16 h-16 flex flex-col items-center justify-center p-1 relative">
+                            <File size={20} className="text-amber-400" />
+                            <span className="text-xs text-amber-300 truncate w-full text-center">
+                              {attachment.file.name.length > 8
+                                ? `${attachment.file.name.substring(0, 8)}...`
+                                : attachment.file.name}
+                            </span>
+                            <button
+                              type="button"
+                              onClick={() => removeAttachment(attachment.id)}
+                              className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 rounded-full flex items-center justify-center text-white hover:bg-red-600 transition-colors"
+                            >
+                              <XIcon size={12} />
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               <div className="relative mb-3">
                 <textarea
                   value={message}
                   onChange={(e) => setMessage(e.target.value)}
                   placeholder="Manda tu mensaje..."
-                  className="w-full p-4 pr-12 border-2 border-amber-600 rounded-lg bg-slate-800 text-amber-100 placeholder-amber-400/70 resize-none shadow-inner shadow-amber-900/30 focus:ring-2 focus:ring-amber-500 focus:border-amber-500 focus:outline-none transition-all duration-300"
+                  className="w-full p-4 pr-24 border-2 border-amber-600 rounded-lg bg-slate-800 text-amber-100 placeholder-amber-400/70 resize-none shadow-inner shadow-amber-900/30 focus:ring-2 focus:ring-amber-500 focus:border-amber-500 focus:outline-none transition-all duration-300"
                   rows={3}
                 />
                 <div className="absolute right-3 bottom-3 flex gap-2">
+                  {/* Attachment button */}
+                  <div className="relative">
+                    <button
+                      type="button"
+                      onClick={toggleAttachmentMenu}
+                      className="p-2 rounded-lg bg-slate-700 text-amber-400 hover:bg-slate-600 hover:text-amber-300 transition-colors duration-300"
+                    >
+                      <Paperclip size={20} />
+                    </button>
+                    
+                    {/* Attachment menu */}
+                    <AnimatePresence>
+                      {showAttachmentMenu && (
+                        <motion.div
+                          initial={{ opacity: 0, scale: 0.9, y: 10 }}
+                          animate={{ opacity: 1, scale: 1, y: 0 }}
+                          exit={{ opacity: 0, scale: 0.9, y: 10 }}
+                          transition={{ duration: 0.2 }}
+                          className="absolute bottom-full right-0 mb-2 w-48 bg-slate-700 rounded-lg shadow-lg border border-amber-600/30 overflow-hidden z-10"
+                        >
+                          <div className="p-1">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                fileInputRef.current?.click();
+                                setShowAttachmentMenu(false);
+                              }}
+                              className="w-full text-left px-3 py-2 flex items-center gap-2 text-amber-300 hover:bg-slate-600 rounded-md transition-colors"
+                            >
+                              <Image size={16} />
+                              <span>Imagen</span>
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                fileInputRef.current?.click();
+                                setShowAttachmentMenu(false);
+                              }}
+                              className="w-full text-left px-3 py-2 flex items-center gap-2 text-amber-300 hover:bg-slate-600 rounded-md transition-colors"
+                            >
+                              <File size={16} />
+                              <span>Documento</span>
+                            </button>
+                          </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </div>
+                  
+                  {/* Send button */}
                   <button
                     type="submit"
-                    disabled={!selectedUser || !message.trim()}
+                    disabled={(!selectedUser || (!message.trim() && attachments.length === 0)) || isUploading}
                     className={`p-2 rounded-lg ${
-                      !selectedUser || !message.trim()
+                      !selectedUser || (!message.trim() && attachments.length === 0) || isUploading
                         ? "bg-slate-700 text-slate-500"
                         : "bg-amber-600 text-white hover:bg-amber-500"
-                    } transition-colors duration-300`}
+                    } transition-colors duration-300 flex items-center justify-center min-w-10`}
                   >
-                    <Send size={20} />
+                    {isUploading ? (
+                      <div className="w-5 h-5 border-2 border-t-transparent border-white rounded-full animate-spin"></div>
+                    ) : (
+                      <Send size={20} />
+                    )}
                   </button>
                 </div>
               </div>
