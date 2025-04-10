@@ -181,11 +181,25 @@ export default function CuentaRegresivaViaje() {
     },
     {
       nombre: 'Juan',
-      personaje: 'Luke Skywalker',
+      personaje: 'Tom Marvolo Riddle',
       descripcion: 'Juancho',
-      casa: 'Rebels',
-      imagen: "https://static1.colliderimages.com/wordpress/wp-content/uploads/2025/04/img_0807.jpeg"
-    }
+      casa: 'Death eaters',
+      imagen: "https://contentful.harrypotter.com/usf1vwtuqyxm/yMwYMbczYDjbnbk1MpoHI/de2fec43140e0bb77fa40be23b1303ef/lord-voldemort-tom-riddle_1_1800x1248.png"
+    },
+    {
+      nombre: 'Mateo',
+      personaje: 'Darth Vader',
+      descripcion: 'Mapedo',
+      casa: 'Galactic Evil Empire',
+      imagen: "https://upload.wikimedia.org/wikipedia/commons/9/9c/Darth_Vader_-_2007_Disney_Weekends.jpg"
+    },
+    {
+      nombre: 'Valeria',
+      personaje: 'Slinky',
+      descripcion: 'Vale',
+      casa: 'Toy Story',
+      imagen: "https://lumiere-a.akamaihd.net/v1/images/open-uri20150422-20810-pzhioy_5a17fe4b.jpeg"
+    },
   ];
 
   const destino = destinos.find(d => d.id === ubicacionActiva)!;
@@ -657,33 +671,37 @@ export default function CuentaRegresivaViaje() {
       </main>
     
       
-      {/* Botón flotante para abrir el selector de casa */}
-      <button 
-        onClick={() => setMostrarSelectorCasa(true)}
-        className="fixed bottom-4 right-4 z-50 p-4 rounded-full bg-amber-500 hover:bg-amber-400 transition-all duration-300 shadow-lg"
-      >
-        <Home size={24} className="text-white" />
-      </button>
-      
-      {/* Modal para seleccionar la casa */}
-      {mostrarSelectorCasa && (
-        <div className="fixed inset-0 z-50 flex items-end justify-end p-4">
-          <div className="bg-[#0A0D12] p-4 rounded-lg shadow-lg border border-amber-900/50">
-            <h3 className="text-lg mb-2">Elige tu casa</h3>
-            <div className="flex gap-2">
-              {casas.map((casa) => (
-                <button 
-                  key={casa.nombre} 
-                  onClick={() => { setCasaSeleccionada(casa.nombre); setMostrarSelectorCasa(false); }}
-                  className={`px-4 py-2 rounded-full text-white font-bold ${casa.botonColor} hover:opacity-80 transition-all duration-300`}
-                >
-                  {casa.nombre}
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>
-      )}
+{/* Botón flotante para abrir el selector de casa */}
+<button 
+  onClick={() => setMostrarSelectorCasa(true)}
+  className="fixed bottom-4 right-4 z-50 p-4 md:p-6 rounded-full bg-amber-500 hover:bg-amber-400 transition-all duration-300 shadow-lg"
+>
+  <Home size={24} className="text-white" />
+</button>
+
+{/* Modal para seleccionar la casa */}
+{mostrarSelectorCasa && (
+  <div className="fixed inset-0 z-50 flex items-center justify-center p-4 md:items-end md:justify-end">
+    <div className="bg-[#0A0D12] p-4 rounded-lg shadow-lg border border-amber-900/50 w-full max-w-xs">
+      <h3 className="text-lg mb-2">Elige tu casa</h3>
+      <div className="flex gap-2 flex-wrap">
+        {casas.map((casa) => (
+          <button 
+            key={casa.nombre} 
+            onClick={() => {
+              setCasaSeleccionada(casa.nombre);
+              setMostrarSelectorCasa(false);
+            }}
+            className={`px-4 py-2 rounded-full text-white font-bold ${casa.botonColor} hover:opacity-80 transition-all duration-300`}
+          >
+            {casa.nombre}
+          </button>
+        ))}
+      </div>
+    </div>
+  </div>
+)}
+
 
       {/* Estilos globales para animaciones */}
       <style jsx global>{`
