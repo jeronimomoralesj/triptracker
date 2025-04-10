@@ -209,13 +209,8 @@ export default function Chat(): JSX.Element {
             {/* Chat header */}
             <header className="relative flex items-center justify-between px-4 py-3 sm:px-6 sm:py-4 bg-gradient-to-r from-amber-800 to-red-900 shadow-lg z-99">
               <div className="flex items-center gap-3">
-                <img
-                  src="/hogwarts-crest.png"
-                  alt="Hogwarts Crest"
-                  className="w-8 h-8 sm:w-10 sm:h-10 object-contain"
-                />
                 <h2 className="text-xl sm:text-2xl font-bold text-amber-300 font-serif">
-                  Messenger of Magic
+                  Mensagero del viaje
                 </h2>
               </div>
               <motion.button
@@ -388,7 +383,7 @@ export default function Chat(): JSX.Element {
                       >
                         <div className="p-4 border-b border-amber-700/30 bg-gradient-to-r from-amber-900 to-red-900">
                           <h3 className="text-lg font-bold text-amber-300 font-serif">
-                            Choose Your Character
+                            Escoge quien eres
                           </h3>
                         </div>
                         <div className="p-15 max-h-80 overflow-y-auto">
@@ -460,7 +455,7 @@ export default function Chat(): JSX.Element {
                 <textarea
                   value={message}
                   onChange={(e) => setMessage(e.target.value)}
-                  placeholder="Cast your message spell..."
+                  placeholder="Manda tu mensaje..."
                   className="w-full p-4 pr-12 border-2 border-amber-600 rounded-lg bg-slate-800 text-amber-100 placeholder-amber-400/70 resize-none shadow-inner shadow-amber-900/30 focus:ring-2 focus:ring-amber-500 focus:border-amber-500 focus:outline-none transition-all duration-300"
                   rows={3}
                 />
@@ -534,7 +529,7 @@ export default function Chat(): JSX.Element {
               )}
               <div className="absolute left-full ml-3 top-1/2 -translate-y-1/2 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                 <div className="bg-slate-800 text-amber-300 px-3 py-1 rounded-lg shadow-lg whitespace-nowrap text-sm">
-                  Open Magic Messenger
+                  Abre el mensaje mágico
                 </div>
               </div>
             </div>
