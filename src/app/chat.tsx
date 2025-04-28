@@ -785,7 +785,7 @@ export default function Chat(): JSX.Element {
             exit={{ scale: 0, opacity: 0 }}
             transition={{ type: "spring", stiffness: 260, damping: 20 }}
             onClick={() => setShowChat(true)}
-            className="fixed bottom-6 left-6 z-999 group"
+            className="fixed bottom-6 right-6 z-999 group"
           >
             <div className="relative">
               <motion.div
