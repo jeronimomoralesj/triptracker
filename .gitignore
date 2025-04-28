@@ -41,4 +41,5 @@ yarn-error.log*
 next-env.d.ts
 
 credentials.json
+credentials.compact.jsoncredentials.compact.json
 credentials.compact.json
