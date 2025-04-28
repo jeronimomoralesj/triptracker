@@ -1,6 +1,9 @@
 // src/app/api/walmart/route.ts
 import { NextRequest, NextResponse } from 'next/server'
-import { load } from 'cheerio'
+import cheerio from 'cheerio'
+
+// Run this API route in Node.js (not the Edge runtime)
+export const runtime = 'nodejs'
 
 export async function GET(req: NextRequest) {
   const url = req.nextUrl.searchParams.get('url')
@@ -13,7 +16,7 @@ export async function GET(req: NextRequest) {
   }
 
   try {
-    // Fetch the Walmart page HTML server-side
+    // Fetch the Walmart product page
     const response = await fetch(url, {
       headers: {
         'User-Agent':
@@ -30,23 +33,18 @@ export async function GET(req: NextRequest) {
     }
 
     const html = await response.text()
-    const $ = load(html)
+    const $ = cheerio.load(html)
 
-    // Extract OpenGraph metadata
-    const title    = $('meta[property="og:title"]').attr('content') || $('title').text().trim()
+    // Pull out the OpenGraph tags (fallback to <title> if missing)
+    const title    = $('meta[property="og:title"]').attr('content') 
+                     || $('title').text().trim()
     const imageUrl = $('meta[property="og:image"]').attr('content') || ''
     const price    = $('meta[property="product:price:amount"]').attr('content') || ''
     const currency = $('meta[property="product:price:currency"]').attr('content') || 'USD'
 
-    return NextResponse.json({
-      title,
-      imageUrl,
-      price,
-      currency,
-      url
-    })
-  } catch (error) {
-    console.error('Error scraping Walmart product:', error)
+    return NextResponse.json({ title, imageUrl, price, currency, url })
+  } catch (err) {
+    console.error('Error scraping Walmart product:', err)
     return NextResponse.json(
       { error: 'Failed to scrape product information' },
       { status: 500 }
