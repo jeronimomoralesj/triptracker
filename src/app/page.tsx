@@ -13,7 +13,6 @@ import {
   Calendar, 
   Upload, 
   DollarSign,
-  Moon,
   Sun,
   Wand2
 } from 'lucide-react';
@@ -21,7 +20,6 @@ import { useRef } from 'react'
 import { collection, addDoc, onSnapshot } from 'firebase/firestore'
 import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage'
 import { db, storage } from "../../firebase";
-import Image from 'next/image';
 import Chat from './chat';
 import Costs from './components/costs';
 
@@ -170,7 +168,6 @@ export default function Home() {
   };
 
   // Current active house for Harry Potter theme (could be set by user in an expanded version)
-  const [activeHouse, setActiveHouse] = useState('gryffindor');
 
 // state to hold the photo URLs
 const [fotos, setFotos] = useState<string[]>([])
