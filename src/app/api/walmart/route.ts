@@ -1,27 +1,26 @@
 // src/app/api/walmart/route.ts
-export const runtime = 'nodejs'  // ← Cheerio needs Node.js, not Edge
-
 import { NextRequest, NextResponse } from 'next/server'
 import { load } from 'cheerio'
 
+// Force Node.js runtime (so fetch + cheerio work as expected)
+export const runtime = 'nodejs'
+
 export async function GET(req: NextRequest) {
   const url = req.nextUrl.searchParams.get('url')
-  if (!url || !url.includes('walmart.com')) {
-    return NextResponse.json(
-      { error: 'Invalid or missing Walmart URL' },
-      { status: 400 }
-    )
+  if (!url?.startsWith('https://www.walmart.com/')) {
+    return NextResponse.json({ error: 'Invalid or missing Walmart URL' }, { status: 400 })
   }
 
   try {
+    // server‐side fetch with a realistic UA
     const res = await fetch(url, {
       headers: {
         'User-Agent':
-          'Mozilla/5.0 (Windows NT 10.0; Win64; x64) ' +
-          'AppleWebKit/537.36 (KHTML, like Gecko) ' +
-          'Chrome/91.0.4472.124 Safari/537.36'
+          'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 ' +
+          '(KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
       }
     })
+
     if (!res.ok) {
       return NextResponse.json(
         { error: `Fetch failed: ${res.status} ${res.statusText}` },
@@ -30,21 +29,14 @@ export async function GET(req: NextRequest) {
     }
 
     const html = await res.text()
-    const $    = load(html)
+    const $ = load(html)
 
-    const title    =
-      $('meta[property="og:title"]').attr('content')
-      || $('title').text().trim()
-
-    const imageUrl =
-      $('meta[property="og:image"]').attr('content') || ''
-
-    const price    =
-      $('meta[property="product:price:amount"]').attr('content') || ''
-
-    const currency =
-      $('meta[property="product:price:currency"]').attr('content')
-      || 'USD'
+    // pull OpenGraph tags (fallback <title>)
+    const title    = $('meta[property="og:title"]').attr('content')
+                    || $('title').text().trim()
+    const imageUrl = $('meta[property="og:image"]').attr('content') || ''
+    const price    = $('meta[property="product:price:amount"]').attr('content') || ''
+    const currency = $('meta[property="product:price:currency"]').attr('content') || 'USD'
 
     return NextResponse.json({ title, imageUrl, price, currency, url })
   } catch (e) {
