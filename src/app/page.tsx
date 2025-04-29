@@ -45,7 +45,7 @@ export default function Home() {
       icono: <MapPin className="text-amber-300" />,
       descripcion: '¡Iniciando en Boston!',
       actividades: [
-        'Visitar el Faneuil Hall', 'Recorrer la Freedom Trail', 'Cenar en Quincy Market', 'Pasear por Boston Common'
+        'Comer Chick Fil a', 'Recorrer la Freedom Trail', 'Cenar en Quincy Market', 'Harvard', 'mit', 'Shake Shack'
       ]
     },
     {
@@ -55,7 +55,7 @@ export default function Home() {
       icono: <GraduationCap className="text-amber-300" />,
       descripcion: 'Graduación de Mateo de MIT',
       actividades: [
-        'Ceremonia de graduación', 'Fotografías con birrete', 'Celebración familiar', 'Cena de gala'
+        'Ceremonia de graduación', 'Mateo hace nada', 'Se come rico'
       ]
     },
     {
@@ -63,19 +63,19 @@ export default function Home() {
       nombre: 'Disney Hollywood Studios',
       fecha: '1 de Junio, 2025',
       icono: <Star className="text-amber-300" />,
-      descripcion: 'Disney Hollywood Studios',
+      descripcion: 'Disney Hollywood Studios opciones comida',
       actividades: [
-        'Torre del Terror', 'Star Wars: Galaxy\'s Edge', 'Toy Story Land', 'Rock \'n\' Roller Coaster'
+        '50\'s Prime Time Café ($15 - $34.99) 8.5/10 Formal', 'Sci-Fi Dine-In Theater ($15 - $34.99) 8/10 Formal', 'Docking Bay 7 ($15 - $34.99) 9/10 Rapido', 'Ronto Roasters ($14.99 y menos) 9/10 Rapido', 'Woody\'s Lunch Box ($14.99 y menos) 9/10 Rapido'
       ]
     },
     {
       id: 'islandsOfAdventure',
-      nombre: 'Islas de la Aventura',
+      nombre: 'Islands of adventure',
       fecha: '2 de Junio, 2025',
       icono: <Sparkles className="text-amber-300" />,
-      descripcion: 'La magia y la aventura nos esperan en Islas de la Aventura',
+      descripcion: 'Islands of adventure opciones comida',
       actividades: [
-        'El Mundo Mágico de Harry Potter - Hogsmeade', 'Aventura del Río de Jurassic Park', 'Montaña Rusa de Hulk', 'Aventura en Motocicleta de Hagrid'
+        'Mythos Restaurant ($35 - $59.99) 9.5/10 Formal', 'Three Broomsticks ($15 - $34.99) 9/10 Formal', 'Confisco Grille ($15 - $34.99) 7.5/10 Formal', 'Pizza Predattoria ($14.99 y menos) 7/10 Rapido', 'Green Eggs and Ham Cafe ($14.99 y menos) 7/10 Rapido', 'Thunder Falls Terrace ($14.99 y menos) 8.5/10 Rapido'
       ]
     },
     {
@@ -83,9 +83,9 @@ export default function Home() {
       nombre: 'Universal Studios',
       fecha: '3 de Junio, 2025',
       icono: <Sparkles className="text-amber-300" />,
-      descripcion: 'Universal Studios!',
+      descripcion: 'Universal Studios opciones comida',
       actividades: [
-        'El Mundo Mágico de Harry Potter - Callejón Diagon', 'Hollywood Rip Ride Rockit', 'La Venganza de la Momia', 'Transformers: The Ride 3D'
+        'Leaky Cauldron ($15 - $34.99) 9/10 Formal', 'Finnegan\'s Bar & Grill ($15 - $34.99) 8/10 Formal', 'Krusty Burger ($14.99 y menos) 7.5/10 Rapido', 'Mel\'s Drive-In ($14.99 y menos) 8/10 Rapido', 'TODAY Cafe ($15 - $34.99) 7/10 Rapido'
       ]
     },
     {
@@ -95,7 +95,7 @@ export default function Home() {
       icono: <Car className="text-amber-300" />,
       descripcion: '¡Viaje por carretera a Miami!',
       actividades: [
-        'South Beach', 'Distrito Art Deco', 'Murales de Wynwood', 'Pequeña Habana'
+        'South Beach', 'No se', 'Dejar a mateo con mauel'
       ]
     },
     {
@@ -105,7 +105,7 @@ export default function Home() {
       icono: <Palmtree className="text-amber-300" />,
       descripcion: 'Punta Cana',
       actividades: [
-        'Playa Bávaro', 'Hoyo Azul', 'Isla Saona', 'Parque Scape'
+        'Paradisus', 'Comer carne', 'Comer sushi', 'Descansar'
       ]
     }
   ];
@@ -149,13 +149,13 @@ export default function Home() {
   ];
 
   const fechasViaje = {
-    boston: new Date('May 28, 2025 00:00:00'),
+    boston: new Date('May 28, 2025 03:59:00'),
     graduacion: new Date('May 29, 2025 10:00:00'),
-    hollywoodStudios: new Date('June 1, 2025 08:00:00'),
+    hollywoodStudios: new Date('June 1, 2025 011:00:00'),
     islandsOfAdventure: new Date('June 2, 2025 08:00:00'),
     universalStudios: new Date('June 3, 2025 08:00:00'),
     miami: new Date('June 4, 2025 08:00:00'),
-    puntaCana: new Date('June 7, 2025 08:00:00')
+    puntaCana: new Date('June 7, 2025 09:55:00')
   };
   
 
@@ -724,7 +724,7 @@ const handlePhotoUpload = async (e: ChangeEvent<HTMLInputElement>) => {
       <footer className={`mt-12 py-8 border-t ${border}`}>
         <div className="container mx-auto px-4 text-center">
           <p className={`mb-4 ${accent} font-medium`}>El Viaje 2025</p>
-          <p className="opacity-60 text-sm">De Boston a Punta Cana: ¡Nuestra aventura inolvidable comienza pronto!</p>
+          <p className="opacity-60 text-sm">De Boston a Punta Cana</p>
         </div>
       </footer>
       <Chat />
