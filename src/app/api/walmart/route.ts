@@ -2,17 +2,17 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { load } from 'cheerio'
 
-// Force Node.js runtime (so fetch + cheerio work as expected)
+// Force this function to run under the Node.js runtime (not the Edge)
 export const runtime = 'nodejs'
 
 export async function GET(req: NextRequest) {
   const url = req.nextUrl.searchParams.get('url')
-  if (!url?.startsWith('https://www.walmart.com/')) {
+  if (!url || !url.includes('walmart.com')) {
     return NextResponse.json({ error: 'Invalid or missing Walmart URL' }, { status: 400 })
   }
 
   try {
-    // server‐side fetch with a realistic UA
+    // server-side fetch with a realistic UA to avoid bot blocks
     const res = await fetch(url, {
       headers: {
         'User-Agent':
@@ -31,9 +31,8 @@ export async function GET(req: NextRequest) {
     const html = await res.text()
     const $ = load(html)
 
-    // pull OpenGraph tags (fallback <title>)
-    const title    = $('meta[property="og:title"]').attr('content')
-                    || $('title').text().trim()
+    // grab the OpenGraph fields (fallback to <title>)
+    const title    = $('meta[property="og:title"]').attr('content') || $('title').text().trim()
     const imageUrl = $('meta[property="og:image"]').attr('content') || ''
     const price    = $('meta[property="product:price:amount"]').attr('content') || ''
     const currency = $('meta[property="product:price:currency"]').attr('content') || 'USD'
@@ -41,9 +40,6 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ title, imageUrl, price, currency, url })
   } catch (e) {
     console.error('Walmart scrape error:', e)
-    return NextResponse.json(
-      { error: 'Internal error scraping Walmart' },
-      { status: 500 }
-    )
+    return NextResponse.json({ error: 'Internal error scraping Walmart' }, { status: 500 })
   }
 }
