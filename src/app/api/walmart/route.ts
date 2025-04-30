@@ -1,103 +1,106 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { load } from 'cheerio'
 
-// force Node.js runtime (so cheerio works)
+// Force this route to run under Node.js (so cheerio works)
+// and to always be dynamic (no caching)
 export const runtime = 'nodejs'
+export const dynamic = 'force-dynamic'
 
 export async function GET(req: NextRequest) {
   const url = req.nextUrl.searchParams.get('url')
-  
-  // Add console log for debugging
   console.log('Walmart API called with URL:', url)
-  
+
   if (!url || !/^https?:\/\/(www\.)?walmart\.com\/.+$/.test(url)) {
     console.error('Invalid Walmart URL:', url)
-    return NextResponse.json({ error: 'Invalid or missing Walmart URL' }, { status: 400 })
+    return NextResponse.json(
+      { error: 'Invalid or missing Walmart URL' },
+      { status: 400 }
+    )
   }
 
   try {
-    // always fetch fresh & spoof a real UA
-    console.log('Attempting to fetch from Walmart...')
+    console.log('Attempting to fetch from Walmart…')
     const res = await fetch(url, {
       cache: 'no-store',
       headers: {
-        'User-Agent': 
+        'User-Agent':
           'Mozilla/5.0 (Windows NT 10.0; Win64; x64) ' +
           'AppleWebKit/537.36 (KHTML, like Gecko) ' +
-          'Chrome/91.0.4472.124 Safari/537.36'
+          'Chrome/91.0.4472.124 Safari/537.36',
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+        'Accept-Language': 'en-US,en;q=0.9',
+        'Referer': 'https://www.walmart.com/'
       }
     })
-    
+
     if (!res.ok) {
-      console.error(`Walmart fetch failed with status: ${res.status} ${res.statusText}`)
+      console.error(`Walmart fetch failed: ${res.status} ${res.statusText}`)
       return NextResponse.json(
-        { error: `Fetch failed: ${res.status} ${res.statusText}` },
+        { error: `Fetch failed: ${res.status}` },
         { status: res.status }
       )
     }
 
     const html = await res.text()
     console.log('Fetched HTML length:', html.length)
-    
-    if (html.length < 1000) {
-      console.warn('Very short HTML response, might be blocked. First 200 chars:', html.substring(0, 200))
+    if (html.length < 2000) {
+      console.warn('Very short HTML, might be bot block:', html.slice(0, 200))
     }
-    
+
     const $ = load(html)
 
     // 1) title
-    const title = 
+    const title =
       $('meta[property="og:title"]').attr('content')?.trim() ||
       $('title').text().trim()
-    
-    // 2) image: OG first
+
+    // 2) try OG image
     let imageUrl = $('meta[property="og:image"]').attr('content') || ''
-    
-    // 3) if OG was missing, look for JSON-LD <script>
+
+    // 3) fallback to JSON-LD
     if (!imageUrl) {
-      console.log('No OG image found, looking for JSON-LD data...')
+      console.log('No OG image; scanning JSON-LD…')
       $('script[type="application/ld+json"]').each((_, el) => {
         try {
           const data = JSON.parse($(el).html() || '{}')
-          // some pages wrap it in an array
-          const product = Array.isArray(data) ? data.find(d => d['@type']==='Product') : data
-          if (product?.image) {
-            imageUrl = Array.isArray(product.image)
-              ? product.image[0]
-              : product.image
-            console.log('Found image in JSON-LD:', imageUrl.substring(0, 100))
+          const prod = Array.isArray(data)
+            ? data.find((d) => d['@type'] === 'Product')
+            : data
+          if (prod?.image) {
+            imageUrl = Array.isArray(prod.image) ? prod.image[0] : prod.image
+            console.log('Found JSON-LD image:', imageUrl.slice(0, 100))
           }
-        } catch (err) { 
-          console.error('Error parsing JSON-LD:', err) 
+        } catch (e) {
+          // ignore parse errors
         }
       })
     }
-    
-    // 4) final fallback: any <img> with "hero" class or first <img>
+
+    // 4) final fallback to hero image or first <img>
     if (!imageUrl) {
-      console.log('No JSON-LD image, trying hero image or first image...')
-      imageUrl = 
+      console.log('No JSON-LD image; trying fallback <img>…')
+      imageUrl =
         $('img.prod-hero-image-image').attr('src') ||
         $('img').first().attr('src') ||
         ''
-      
       if (imageUrl) {
-        console.log('Found fallback image:', imageUrl.substring(0, 100))
+        console.log('Found fallback image:', imageUrl.slice(0, 100))
       } else {
-        console.error('No image found in the HTML')
+        console.error('No image found in HTML')
       }
     }
-    
+
     // price + currency
-    const price = $('meta[property="product:price:amount"]').attr('content')?.trim() || ''
-    const currency = $('meta[property="product:price:currency"]').attr('content')?.trim() || 'USD'
-    
-    console.log('Extracted product data:', { 
-      title: title?.substring(0, 50), 
-      imageUrl: imageUrl?.substring(0, 50), 
-      price, 
-      currency 
-    })
+    const price =
+      $('meta[property="product:price:amount"]').attr('content')?.trim() || ''
+    const currency =
+      $('meta[property="product:price:currency"]').attr('content')?.trim() ||
+      'USD'
+
+    console.log(
+      'Extracted product data:',
+      { title: title.slice(0, 50), imageUrl: imageUrl.slice(0, 50), price, currency }
+    )
 
     return NextResponse.json({ title, imageUrl, price, currency, url })
   } catch (err) {

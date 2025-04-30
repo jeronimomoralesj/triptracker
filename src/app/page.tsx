@@ -22,6 +22,7 @@ import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage'
 import { db, storage } from "../../firebase";
 import Chat from './chat';
 import Costs from './components/costs';
+import Itinerary from './components/itinerary';
 
 export default function Home() {
   const [countdownType, setCountdownType] = useState('detailed');
@@ -85,7 +86,7 @@ export default function Home() {
       icono: <Sparkles className="text-amber-300" />,
       descripcion: 'Universal Studios opciones comida',
       actividades: [
-        'Leaky Cauldron ($15 - $34.99) 9/10 Formal', 'Finnegan\'s Bar & Grill ($15 - $34.99) 8/10 Formal', 'Krusty Burger ($14.99 y menos) 7.5/10 Rapido', 'Mel\'s Drive-In ($14.99 y menos) 8/10 Rapido', 'TODAY Cafe ($15 - $34.99) 7/10 Rapido'
+        'Leaky Cauldron ($15 - $34.99) 9/10 Formal', 'Finnegan\'s Bar & Grill ($15 - $34.99) 8/10 Formal', 'Krusty Burger ($14.99 y menos) 7.5/10 Rapido', 'Mel\'s Drive-In ($14.99 y menos) 8/10 Rapido', 'Bumblebee Man\'s Taco Truck ($14.99 y menos) 8/10 Rapido'
       ]
     },
     {
@@ -167,7 +168,7 @@ export default function Home() {
     slytherin: { color: 'text-green-600', bgColor: 'bg-green-600', borderColor: 'border-silver', accent: 'text-gray-400' }
   };
 
-  const activeHouse = hpHouses.gryffindor
+  const [activeHouse, setActiveHouse] = useState<keyof typeof hpHouses>('gryffindor')
 
   // Current active house for Harry Potter theme (could be set by user in an expanded version)
 
@@ -284,7 +285,7 @@ const handlePhotoUpload = async (e: ChangeEvent<HTMLInputElement>) => {
           bg: 'bg-slate-900 bg-[url("/parchment-bg.png")] bg-fixed bg-blend-multiply',
           text: 'text-amber-100',
           accent: house.color || 'text-amber-500',
-          card: 'bg-slate-800/90 backdrop-blur-sm border-amber-700 hover:border-amber-500',
+          card: `bg-slate-800/90 backdrop-blur-sm border-amber-700 hover:border-amber-500`,
           button: `bg-amber-700 hover:bg-amber-600 text-white ${house.borderColor} border hover:scale-105`,
           header: 'text-amber-500 font-hp',
           font: 'font-serif',
@@ -417,11 +418,14 @@ const handlePhotoUpload = async (e: ChangeEvent<HTMLInputElement>) => {
               className={`p-2 rounded-full transition-all ${theme === 'starWars' ? button : 'bg-gray-200 dark:bg-gray-700 hover:scale-110'}`}>
               <Star size={20} />
             </button>
-            <button 
-              onClick={() => setTheme('harryPotter')} 
-              className={`p-2 rounded-full transition-all ${theme === 'harryPotter' ? button : 'bg-gray-200 dark:bg-gray-700 hover:scale-110'}`}>
-              <Wand2 size={20} />
-            </button>
+            <button onClick={() => {
+  setTheme('harryPotter')
+  // Optionally rotate through houses or allow user to pick:
+  setActiveHouse(prev => prev === 'gryffindor' ? 'ravenclaw' : 'gryffindor')
+}}
+className={`p-2 rounded-full transition-all ${theme==='harryPotter'?button:'bg-gray-200'}`}>
+  <Wand2 size={20}/>
+</button>
           </div>
         </div>
         
@@ -558,59 +562,15 @@ const handlePhotoUpload = async (e: ChangeEvent<HTMLInputElement>) => {
 
         {/* Itinerary Section */}
         {activeTab === 'itinerario' && (
-          <div className="animate-fadeIn">
-            <h2 className={`text-3xl font-bold text-center mb-8 ${header}`}>
-              Nuestro Itinerario
-            </h2>
-            
-            <div className="grid gap-8">
-              {destinos.map((destino, index) => (
-                <div 
-                  key={destino.id}
-                  className={`relative flex flex-col md:flex-row gap-6 p-6 rounded-xl ${card} border ${shadow} transition-all`}
-                >
-                  {/* Timeline connector */}
-                  {index < destinos.length - 1 && (
-                    <div className="absolute left-10 md:left-12 top-20 bottom-0 w-0.5 bg-gray-300 dark:bg-gray-700"></div>
-                  )}
-                  
-                  {/* Date circle */}
-                  <div className={`flex-shrink-0 w-20 h-20 rounded-full ${highlight} flex items-center justify-center z-10`}>
-                    <div>
-                      {React.cloneElement(destino.icono, { size: 32 })}
-                      <div className={`text-sm font-medium mt-1 ${accent}`}>
-
-                      </div>
-                    </div>
-                  </div>
-                  
-                  {/* Content */}
-                  <div className="flex-grow">
-                    <div className="flex items-center mb-4">
-                      <h3 className={`text-xl md:text-2xl font-bold ${header}`}>{destino.nombre}</h3>
-                      <span className={`ml-4 px-3 py-1 rounded-full text-sm ${highlight} ${accent}`}>
-                        {destino.fecha}
-                      </span>
-                    </div>
-                    
-                    <p className="mb-4">{destino.descripcion}</p>
-                    
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                      {destino.actividades.map((actividad, idx) => (
-                        <div 
-                          key={idx} 
-                          className={`p-3 rounded-lg ${highlight} flex items-center`}
-                        >
-                          <div className="w-2 h-2 rounded-full bg-current mr-2"></div>
-                          {actividad}
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
+          <Itinerary 
+          destinos={destinos}
+          card={card}
+          shadow={shadow}
+          border={border}
+          highlight={highlight}
+          accent={accent}
+          header={header}
+          />
         )}
 
         {/* Travelers Section */}
