@@ -70,7 +70,7 @@ export async function GET(req: NextRequest) {
             imageUrl = Array.isArray(prod.image) ? prod.image[0] : prod.image
             console.log('Found JSON-LD image:', imageUrl.slice(0, 100))
           }
-        } catch (e) {
+        } catch{
           // ignore parse errors
         }
       })

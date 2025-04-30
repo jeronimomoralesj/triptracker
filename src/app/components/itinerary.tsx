@@ -15,7 +15,6 @@ interface ItineraryProps {
   destinos: Destination[];
   card: string;
   shadow: string;
-  border: string;
   highlight: string;
   accent: string;
   header: string;
@@ -25,7 +24,6 @@ export default function Itinerary({
   destinos,
   card,
   shadow,
-  border,
   highlight,
   accent,
   header,
