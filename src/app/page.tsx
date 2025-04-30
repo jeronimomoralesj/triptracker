@@ -167,7 +167,7 @@ export default function Home() {
     slytherin: { color: 'text-green-600', bgColor: 'bg-green-600', borderColor: 'border-silver', accent: 'text-gray-400' }
   };
 
-  let activeHouse = hpHouses.gryffindor
+  const activeHouse = hpHouses.gryffindor
 
   // Current active house for Harry Potter theme (could be set by user in an expanded version)
 
