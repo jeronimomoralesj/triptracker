@@ -188,7 +188,7 @@ export default function Costs({ card, border, highlight, accent, header }: Costs
     return groups
   }
 
-  const total = budgetData.breakfast + budgetData.lunch + budgetData.extras
+  const total = (budgetData.breakfast + budgetData.lunch + budgetData.extras) * 1.065
   const porPersona = total/5
 
   if (loading) {
@@ -270,7 +270,9 @@ export default function Costs({ card, border, highlight, accent, header }: Costs
             <span className={accent}>
               ${total.toLocaleString()}
             </span>
-            <span>Por persona</span>
+          </div>
+          <div className={`flex justify-between items-center p-4 rounded-lg font-bold text-lg border-t ${border}`}>
+            <span>Total por persona</span>
             <span className={accent}>
               ${porPersona.toLocaleString()}
             </span>
