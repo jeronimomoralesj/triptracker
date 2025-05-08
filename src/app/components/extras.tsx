@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, ChangeEvent, FormEvent } from 'react';
-import { collection, addDoc, onSnapshot, Timestamp, doc, updateDoc, deleteDoc } from 'firebase/firestore';
+import { collection, addDoc, onSnapshot, Timestamp, doc, updateDoc, deleteDoc, QueryDocumentSnapshot, CollectionReference, } from 'firebase/firestore';
 import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 import { db, storage } from '../../../firebase';
 import { ChevronDown, X, PlusCircle, MapPin, Camera, Trash, Edit, ExternalLink, Info, Car, Sun } from 'lucide-react';
@@ -48,14 +48,46 @@ export default function Extras({ bg, card, border, header, text }: ExtrasProps) 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const formRef = useRef<HTMLFormElement>(null);
 
-  // subscribe to Firestore parkings
+
+  interface ParkingDoc {
+    ubicacion: string;
+    parqueadero: string;
+    indicaciones?: string;
+    imageUrl?: string;
+    coordinates?: {
+      latitude: number;
+      longitude: number;
+    };
+    createdAt: Timestamp;
+  }
+  
   useEffect(() => {
-    const q = collection(db, 'parkings');
-    return onSnapshot(q, snap => {
-      const items: Parking[] = snap.docs.map(doc => ({ id: doc.id, ...(doc.data() as any) }));
-      setParkings(items.sort((a, b) => b.createdAt.toMillis() - a.createdAt.toMillis()));
+    // Cast the generic so `q` is known to hold `ParkingDoc` objects
+    const q = collection(
+      db,
+      'parkings'
+    ) as CollectionReference<ParkingDoc>;
+  
+    return onSnapshot(q, (snap) => {
+      const items: Parking[] = snap.docs.map((d: QueryDocumentSnapshot<ParkingDoc>) => {
+        const data = d.data();
+        return {
+          id: d.id,
+          ubicacion: data.ubicacion,
+          parqueadero: data.parqueadero,
+          indicaciones: data.indicaciones,
+          imageUrl: data.imageUrl,
+          coordinates: data.coordinates,
+          createdAt: data.createdAt,
+        };
+      });
+  
+      setParkings(
+        items.sort((a, b) => b.createdAt.toMillis() - a.createdAt.toMillis())
+      );
     });
   }, []);
+  
 
   // preview file
   const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
