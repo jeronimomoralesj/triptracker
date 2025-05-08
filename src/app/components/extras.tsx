@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef, ChangeEvent, FormEvent } from 'reac
 import { collection, addDoc, onSnapshot, Timestamp, doc, updateDoc, deleteDoc } from 'firebase/firestore';
 import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 import { db, storage } from '../../../firebase';
-import { ChevronDown, X, PlusCircle, MapPin, Camera, Trash, Edit, Map, ExternalLink, Info, Car, Sun } from 'lucide-react';
+import { ChevronDown, X, PlusCircle, MapPin, Camera, Trash, Edit, ExternalLink, Info, Car, Sun } from 'lucide-react';
 import WeatherSection from './weather';
 
 interface Parking {
@@ -214,46 +214,6 @@ export default function Extras({ bg, card, border, header, text }: ExtrasProps) 
     }
   };
 
-// state for your converter
-// converter state
-const [amount, setAmount] = useState<string>('1');
-const [direction, setDirection] = useState<'USD→COP' | 'COP→USD'>('USD→COP');
-const [rateUsdToCop, setRateUsdToCop] = useState<number | null>(null);
-const [loadingRate, setLoadingRate] = useState(true);
-const [conversionResult, setConversionResult] = useState<number | null>(null);
-
-// fetch the live USD→COP rate once on mount
-useEffect(() => {
-    const key = ""
-    fetch('https://api.apilayer.com/exchangerates_data/latest?base=USD&symbols=COP', {
-        headers: { apikey: key }
-      })
-      .then(r => r.json())
-      .then(json => {
-        if (json.success && json.rates?.COP) {
-          setRateUsdToCop(json.rates.COP)
-        } else {
-          console.warn('Rate fetch failed', json)
-        }
-      })
-    
-    .catch(err => console.error('Rate fetch error', err))
-    .finally(() => setLoadingRate(false));
-}, []);
-
-// recalc whenever amount, direction or rate changes
-useEffect(() => {
-  const n = parseFloat(amount);
-  if (!rateUsdToCop || isNaN(n)) {
-    setConversionResult(null);
-    return;
-  }
-  if (direction === 'USD→COP') {
-    setConversionResult(n * rateUsdToCop);
-  } else {
-    setConversionResult(n / rateUsdToCop);
-  }
-}, [amount, direction, rateUsdToCop]);
 
   const parks = Object.keys(parkTips);
   const [selectedPark, setSelectedPark] = useState(parks[0]);
@@ -318,62 +278,6 @@ useEffect(() => {
       <li key={idx}>{tip}</li>
     ))}
   </ul>
-
-{/* ─── Currency Converter ────────────────────────────────────────── */}
-<div className="border-t pt-4">
-  <h3 className="text-lg font-semibold mb-2 text-card-foreground">
-    Convertidor USD ⇄ COP
-  </h3>
-  <div className="flex flex-wrap items-end gap-2">
-    <input
-      type="number"
-      step="0.01"
-      min="0"
-      value={amount}
-      onChange={e => setAmount(e.target.value)}
-      className="w-24 px-2 py-1 border rounded bg-background text-card-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
-    />
-
-    <select
-      value={direction}
-      onChange={e => setDirection(e.target.value as any)}
-      className="px-2 py-1 border rounded bg-background text-card-foreground focus:outline-none"
-    >
-      <option value="USD→COP">USD → COP</option>
-      <option value="COP→USD">COP → USD</option>
-    </select>
-
-    <button
-      disabled={loadingRate}
-      className="px-3 py-1 bg-primary text-primary-foreground rounded hover:bg-primary/90 transition-colors disabled:opacity-50"
-    >
-      {loadingRate ? '⏳ Cargando tasa…' : 'Calcular'}
-    </button>
-  </div>
-
-  <p className="mt-3 text-card-foreground">
-    1 USD ={' '}
-    {loadingRate
-      ? <span className="inline-block animate-pulse">...</span>
-      : rateUsdToCop != null
-        ? rateUsdToCop.toLocaleString(undefined, { maximumFractionDigits: 2 })
-        : <em>Error</em>
-    } COP
-  </p>
-
-  <p className="mt-2 text-card-foreground">
-    {parseFloat(amount || '0').toLocaleString(undefined, { maximumFractionDigits: 2 })}{' '}
-    {direction.startsWith('USD') ? 'USD' : 'COP'} =&nbsp;
-    {conversionResult != null
-      ? <strong>
-          {conversionResult.toLocaleString(undefined, { maximumFractionDigits: 2 })}{' '}
-          {direction.endsWith('COP') ? 'COP' : 'USD'}
-        </strong>
-      : <em>—</em>
-    }
-  </p>
-</div>
-
 
 </div>
 
