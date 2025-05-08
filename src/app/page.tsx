@@ -14,7 +14,8 @@ import {
   Upload, 
   DollarSign,
   Sun,
-  Wand2
+  Wand2,
+  PlusCircle
 } from 'lucide-react';
 import { useRef } from 'react'
 import { collection, addDoc, onSnapshot } from 'firebase/firestore'
@@ -23,6 +24,7 @@ import { db, storage } from "../../firebase";
 import Chat from './chat';
 import Costs from './components/costs';
 import Itinerary from './components/itinerary';
+import Extras from './components/extras';
 
 export default function Home() {
   const [countdownType, setCountdownType] = useState('detailed');
@@ -455,7 +457,8 @@ className={`p-2 rounded-full transition-all ${theme==='harryPotter'?button:'bg-g
                 { id: 'itinerario', label: 'Itinerario', icon: <Calendar size={18} /> },
                 { id: 'viajeros', label: 'Viajeros', icon: <Users size={18} /> },
                 { id: 'fotos', label: 'Fotos', icon: <Upload size={18} /> },
-                { id: 'presupuesto', label: 'Presupuesto', icon: <DollarSign size={18} /> }
+                { id: 'presupuesto', label: 'Presupuesto', icon: <DollarSign size={18} /> },
+                { id: 'extras', label: 'Extras', icon: <PlusCircle size={18} /> }
               ].map(item => (
                 <button
                   key={item.id}
@@ -482,7 +485,8 @@ className={`p-2 rounded-full transition-all ${theme==='harryPotter'?button:'bg-g
               { id: 'itinerario', label: 'Itinerario', icon: <Calendar size={18} /> },
               { id: 'viajeros', label: 'Viajeros', icon: <Users size={18} /> },
               { id: 'fotos', label: 'Fotos', icon: <Upload size={18} /> },
-              { id: 'presupuesto', label: 'Presupuesto', icon: <DollarSign size={18} /> }
+              { id: 'presupuesto', label: 'Presupuesto', icon: <DollarSign size={18} /> },
+              { id: 'extras', label: 'Extras', icon: <PlusCircle size={18} /> }
             ].map(item => (
               <button
                 key={item.id}
@@ -680,6 +684,21 @@ className={`p-2 rounded-full transition-all ${theme==='harryPotter'?button:'bg-g
     shadow={shadow}
   />
 )}
+
+        {/* extras Section */}
+        {activeTab === 'extras' && (
+          <Extras 
+          destinos={destinos}
+          card={card}
+          shadow={shadow}
+          border={border}
+          highlight={highlight}
+          accent={accent}
+          header={header}
+          bg={bg}
+          text={text}
+          />
+        )}
       </main>
 
       {/* Footer */}
